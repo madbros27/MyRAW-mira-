@@ -219,9 +219,9 @@ export function CommandPalette() {
                   <Item value="search issues advanced" icon={Search} onSelect={() => run(() => router.push('/search'))}>
                     Advanced search
                   </Item>
-                  {can.inviteMembers(role) ? (
-                    <Item value="members invites team" icon={Users} onSelect={() => run(() => router.push('/settings/members'))}>
-                      Members &amp; invites
+                  {can.manageMembers(role) ? (
+                    <Item value="members team" icon={Users} onSelect={() => run(() => router.push('/settings/members'))}>
+                      Members
                     </Item>
                   ) : null}
                   <Item value="settings profile account" icon={Settings} onSelect={() => run(() => router.push('/settings/profile'))}>

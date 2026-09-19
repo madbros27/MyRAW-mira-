@@ -33,8 +33,10 @@ export const can = {
   /** Workspace settings and membership. */
   manageWorkspace: (role?: WorkspaceRole) => atLeast(role, 'admin'),
   manageMembers: (role?: WorkspaceRole) => atLeast(role, 'admin'),
-  inviteMembers: (role?: WorkspaceRole) => atLeast(role, 'lead'),
   manageSprints: (role?: WorkspaceRole) => atLeast(role, 'lead'),
+  manageTeams: (role?: WorkspaceRole) => atLeast(role, 'admin'),
+  manageRoles: (role?: WorkspaceRole) => atLeast(role, 'admin'),
+  approveJoinRequests: (role?: WorkspaceRole) => atLeast(role, 'lead'),
 }
 
 export function canDeleteIssue(

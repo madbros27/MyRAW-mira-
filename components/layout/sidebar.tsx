@@ -9,6 +9,7 @@ import {
   Inbox,
   Plus,
   Search,
+  Users,
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -92,6 +93,8 @@ function SidebarNav({ collapsed }: { collapsed: boolean }) {
     { href: '/my-work', label: 'My work', icon: Inbox },
     { href: '/notifications', label: 'Notifications', icon: Bell, badge: unread },
     { href: '/projects', label: 'Projects', icon: FolderKanban },
+    { href: '/projects/discover', label: 'Find Projects', icon: Search },
+    { href: '/teams', label: 'Teams', icon: Users },
   ]
 
   return (

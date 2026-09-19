@@ -41,8 +41,8 @@ export function NoWorkspace({ email }: { email: string }) {
         <h1 className="mt-5 text-lg font-semibold">Create your first workspace</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           You are signed in as <span className="font-medium text-foreground">{email}</span> but
-          you do not belong to a workspace yet. Create one, or ask a teammate to invite you —
-          invitations are matched to this email address automatically.
+          you do not belong to a workspace yet. Create one, or ask an administrator to add you to
+          an existing workspace.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">

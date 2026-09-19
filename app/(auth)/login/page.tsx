@@ -89,11 +89,6 @@ function LoginForm() {
         </Link>
       </p>
 
-      {notice === 'check-email' ? (
-        <p className="mt-4 rounded-lg border border-success/30 bg-success-subtle px-3 py-2 text-xs font-medium text-success">
-          Account created. Check your inbox to confirm your email address, then sign in.
-        </p>
-      ) : null}
       {notice === 'password-updated' ? (
         <p className="mt-4 rounded-lg border border-success/30 bg-success-subtle px-3 py-2 text-xs font-medium text-success">
           Your password was updated. Sign in with the new one.

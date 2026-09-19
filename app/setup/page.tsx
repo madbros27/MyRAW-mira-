@@ -106,8 +106,8 @@ export default function SetupPage() {
                 </p>
                 <Code>{`npm run dev`}</Code>
                 <p>
-                  Then create an account. Signing up seeds a workspace with a demo project so
-                  the board is populated from the first load.
+                  Then create an account. New users start with a clean workspace and can join
+                  projects once they are connected to the right team or workspace.
                 </p>
               </>
             }

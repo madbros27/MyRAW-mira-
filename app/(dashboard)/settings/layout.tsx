@@ -17,9 +17,9 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
     { href: '/settings/profile', label: 'Your profile', icon: UserRound, show: true },
     {
       href: '/settings/members',
-      label: 'Members & invites',
+      label: 'Members',
       icon: Users,
-      show: can.inviteMembers(role),
+      show: can.manageMembers(role),
     },
     {
       href: '/settings/workspace',

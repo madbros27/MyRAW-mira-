@@ -17,9 +17,11 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Field, Input, Textarea } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/controls'
 import { AssigneePicker } from '@/components/issues/pickers'
 import { PROJECT_COLORS, PROJECT_ICONS } from '@/lib/constants'
 import { useCreateProject } from '@/lib/queries/projects'
+import { useTeams } from '@/lib/queries/teams'
 import { useMembers } from '@/lib/queries/workspaces'
 import { useUiStore } from '@/lib/store/ui-store'
 import { cn, errorMessage } from '@/lib/utils'
@@ -45,6 +47,7 @@ export function CreateProjectDialog() {
   const setOpen = useUiStore((state) => state.setCreateProjectOpen)
   const { workspaceId, userId } = useWorkspaceContext()
   const { data: members } = useMembers(workspaceId)
+  const { data: teams } = useTeams(workspaceId)
   const create = useCreateProject(workspaceId)
 
   const [form, setForm] = React.useState({
@@ -53,6 +56,7 @@ export function CreateProjectDialog() {
     keyEdited: false,
     description: '',
     leadId: null as string | null,
+    teamId: null as string | null,
     icon: 'Rocket' as string,
     color: PROJECT_COLORS[0] as string,
   })
@@ -66,11 +70,12 @@ export function CreateProjectDialog() {
       keyEdited: false,
       description: '',
       leadId: userId,
+      teamId: teams?.[0]?.id ?? null,
       icon: 'Rocket',
       color: PROJECT_COLORS[0],
     })
     setError(null)
-  }, [open, userId])
+  }, [open, userId, teams])
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
@@ -88,6 +93,7 @@ export function CreateProjectDialog() {
         key,
         description: form.description.trim() || null,
         leadId: form.leadId,
+        teamId: form.teamId,
         icon: form.icon,
         color: form.color,
       })
@@ -188,6 +194,29 @@ export function CreateProjectDialog() {
                 currentUserId={userId}
               />
             </Field>
+
+            {teams?.length ? (
+              <Field label="Team">
+                <Select
+                  value={form.teamId ?? 'none'}
+                  onValueChange={(value) =>
+                    setForm((prev) => ({ ...prev, teamId: value === 'none' ? null : value }))
+                  }
+                >
+                  <SelectTrigger aria-label="Project team">
+                    <SelectValue placeholder="No team selected" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No team</SelectItem>
+                    {teams.map((team) => (
+                      <SelectItem key={team.id} value={team.id}>
+                        {team.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+            ) : null}
 
             <Field label="Icon">
               <div className="flex flex-wrap gap-1.5">

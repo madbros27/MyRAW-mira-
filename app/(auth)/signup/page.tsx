@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button'
 import { Field, Input } from '@/components/ui/input'
 import { Separator, Skeleton } from '@/components/ui/primitives'
 import { getSupabaseBrowserClient } from '@/lib/supabase/client'
-import { getSiteUrl } from '@/lib/supabase/env'
 import { cn, errorMessage } from '@/lib/utils'
 
 const RULES = [
@@ -67,17 +66,15 @@ function SignupForm() {
         password: form.password,
         options: {
           data: { full_name: form.name.trim() || form.email.trim().split('@')[0] },
-          emailRedirectTo: `${getSiteUrl()}/auth/callback?next=${encodeURIComponent(next)}`,
         },
       })
       if (signUpError) throw signUpError
 
-      // With email confirmation on, there is no session yet.
       if (data.session) {
         router.push(next)
         router.refresh()
       } else {
-        router.push('/login?notice=check-email')
+        router.push('/login')
       }
     } catch (caught) {
       const message = errorMessage(caught, 'Could not create your account')
@@ -189,8 +186,7 @@ function SignupForm() {
         </Button>
 
         <p className="text-2xs leading-relaxed text-muted-foreground">
-          Signing up creates a workspace with a demo project so you can see a populated board
-          straight away. Rename it or start a fresh one at any time.
+          Your account is created immediately and you can start from a clean workspace.
         </p>
       </form>
 

@@ -171,18 +171,10 @@ export function MobileNavDrawer() {
           <Separator />
 
           <ul className="space-y-0.5">
-            {can.inviteMembers(role) ? (
-              <DrawerItem
-                icon={Users}
-                label="Members & invites"
-                onClick={() => go('/settings/members')}
-              />
+            {can.manageMembers(role) ? (
+              <DrawerItem icon={Users} label="Members" onClick={() => go('/settings/members')} />
             ) : null}
-            <DrawerItem
-              icon={Settings}
-              label="Settings"
-              onClick={() => go('/settings/profile')}
-            />
+            <DrawerItem icon={Settings} label="Settings" onClick={() => go('/settings/profile')} />
           </ul>
 
           <div className="flex items-center justify-between rounded-lg border border-border bg-surface-raised p-2">

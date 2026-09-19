@@ -7,8 +7,8 @@ import 'server-only'
  *                                   Use in Server Components, Route Handlers
  *                                   and Server Actions.
  *   createSupabaseAdminClient()   — service role, RLS bypassed. Only for
- *                                   deliberate admin work (invites), never for
- *                                   rendering user data.
+ *                                   deliberate admin work, never for rendering
+ *                                   user data.
  */
 
 import { createServerClient } from '@supabase/ssr'

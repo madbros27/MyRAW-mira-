@@ -166,7 +166,3 @@ export const PROJECT_SELECT = `
   lead:profiles!projects_lead_id_fkey(id,full_name,avatar_url,email)
 `.replace(/\s+/g, '')
 
-export const INVITE_SELECT = `
-  *,
-  inviter:profiles!workspace_invites_invited_by_fkey(id,full_name)
-`.replace(/\s+/g, '')

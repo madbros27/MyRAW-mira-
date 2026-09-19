@@ -12,13 +12,13 @@ import type {
   IssueType,
   LabelRow,
   NotificationRow,
+  PermissionRow,
   ProfileRow,
   ProjectRow,
   ProjectStatusRow,
   SavedFilterRow,
   SprintRow,
   StatusCategory,
-  WorkspaceInviteRow,
   WorkspaceRole,
   WorkspaceRow,
 } from './database'
@@ -42,9 +42,41 @@ export type Member = {
   profile: Profile | null
 }
 
+export type Team = {
+  id: string
+  workspace_id: string
+  name: string
+  description: string | null
+  created_by: string
+  created_at: string
+  updated_at: string
+  lead?: Pick<Profile, 'id' | 'full_name' | 'avatar_url' | 'email'> | null
+  members?: Member[]
+  project_count?: number
+}
+
 export type ProjectWithMeta = Project & {
   lead: Pick<Profile, 'id' | 'full_name' | 'avatar_url' | 'email'> | null
   statuses?: ProjectStatus[]
+  team?: { id: string; name: string } | null
+}
+
+export type RolePermission = {
+  role_id: string
+  permission_id: string
+  permission: Pick<PermissionRow, 'id' | 'key' | 'name' | 'description'> | null
+}
+
+export type RoleWithPermissions = {
+  id: string
+  workspace_id: string
+  name: string
+  description: string | null
+  is_system: boolean
+  created_by: string | null
+  created_at: string
+  updated_at: string
+  permissions: PermissionRow[]
 }
 
 export type IssueSummary = IssueRow & {
@@ -77,10 +109,6 @@ export type Watcher = {
   issue_id: string
   user_id: string
   profile: Pick<Profile, 'id' | 'full_name' | 'avatar_url' | 'email'> | null
-}
-
-export type Invite = WorkspaceInviteRow & {
-  inviter: Pick<Profile, 'id' | 'full_name'> | null
 }
 
 /** The "JQL-lite" filter model. Every field is optional and ANDed together. */

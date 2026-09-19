@@ -5,7 +5,6 @@ import {
   AtSign,
   Bell,
   Flag,
-  Mail,
   MessageSquare,
   Play,
   Plus,
@@ -35,7 +34,6 @@ const ICONS: Record<NotificationType, React.ElementType> = {
   issue_created: Plus,
   sprint_started: Play,
   sprint_completed: Flag,
-  invited: Mail,
 }
 
 /** Resolve the destination for a notification, or null when it has none. */

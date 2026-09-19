@@ -203,24 +203,8 @@ begin
         full_name  = coalesce(public.profiles.full_name, excluded.full_name),
         avatar_url = coalesce(public.profiles.avatar_url, excluded.avatar_url);
 
-  -- Give every new account a workspace with demo data so the product is never
-  -- an empty shell on first login. Seeding must never be able to block signup,
-  -- hence the guard and the swallowed-but-logged failure.
-  if to_regprocedure('public.bootstrap_demo_workspace(uuid, text)') is not null then
-    begin
-      perform public.bootstrap_demo_workspace(new.id, v_name);
-    exception when others then
-      raise warning 'MIRA: demo workspace bootstrap failed for %: %', new.id, sqlerrm;
-    end;
-  end if;
-
-  -- Honour any pending invites addressed to this email.
-  begin
-    perform public.claim_pending_invites(new.id, new.email);
-  exception when others then
-    raise warning 'MIRA: invite claim failed for %: %', new.id, sqlerrm;
-  end;
-
+  -- Direct registration only: create the profile, do not seed demo workspaces,
+  -- projects, or claims from any invite table.
   return new;
 end;
 $$;

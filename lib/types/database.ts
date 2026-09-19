@@ -28,8 +28,8 @@ export type NotificationType =
   | 'issue_created'
   | 'sprint_started'
   | 'sprint_completed'
-  | 'invited'
-export type InviteStatus = 'pending' | 'accepted' | 'revoked' | 'expired'
+export type TeamMemberRole = 'lead' | 'member'
+export type JoinRequestStatus = 'pending' | 'approved' | 'rejected' | 'cancelled'
 
 type Timestamps = {
   created_at: string
@@ -64,6 +64,7 @@ export type WorkspaceMemberRow = {
 export type ProjectRow = Timestamps & {
   id: string
   workspace_id: string
+  team_id: string | null
   name: string
   key: string
   description: string | null
@@ -72,6 +73,57 @@ export type ProjectRow = Timestamps & {
   color: string
   is_archived: boolean
   issue_counter: number
+}
+
+export type TeamRow = Timestamps & {
+  id: string
+  workspace_id: string
+  name: string
+  description: string | null
+  created_by: string
+  lead_user_id: string | null
+}
+
+export type TeamMemberRow = Timestamps & {
+  id: string
+  team_id: string
+  user_id: string
+  role: TeamMemberRole
+  created_at: string
+}
+
+export type PermissionRow = {
+  id: string
+  key: string
+  name: string
+  description: string | null
+  created_at: string
+}
+
+export type RoleRow = Timestamps & {
+  id: string
+  workspace_id: string
+  name: string
+  description: string | null
+  is_system: boolean
+  is_custom: boolean
+  created_by: string | null
+}
+
+export type RolePermissionRow = {
+  role_id: string
+  permission_id: string
+}
+
+export type ProjectJoinRequestRow = Timestamps & {
+  id: string
+  project_id: string
+  user_id: string
+  status: JoinRequestStatus
+  requested_at: string
+  reviewed_at: string | null
+  reviewed_by: string | null
+  note: string | null
 }
 
 export type ProjectStatusRow = {
@@ -209,19 +261,6 @@ export type SavedFilterRow = Timestamps & {
   is_shared: boolean
 }
 
-export type WorkspaceInviteRow = {
-  id: string
-  workspace_id: string
-  email: string
-  role: WorkspaceRole
-  invited_by: string | null
-  token: string
-  status: InviteStatus
-  expires_at: string
-  accepted_at: string | null
-  created_at: string
-}
-
 /** Helper that turns a Row type into the shape accepted by `.insert()`. */
 type Insertable<TRow, TRequired extends keyof TRow> = Partial<TRow> &
   Pick<TRow, TRequired>
@@ -239,6 +278,12 @@ export type Database = {
       profiles: Table<ProfileRow, 'id' | 'email'>
       workspaces: Table<WorkspaceRow, 'name' | 'slug' | 'owner_id'>
       workspace_members: Table<WorkspaceMemberRow, 'workspace_id' | 'user_id'>
+      teams: Table<TeamRow, 'workspace_id' | 'name'>
+      team_members: Table<TeamMemberRow, 'team_id' | 'user_id'>
+      permissions: Table<PermissionRow, 'key' | 'name'>
+      roles: Table<RoleRow, 'workspace_id' | 'name'>
+      role_permissions: Table<RolePermissionRow, 'role_id' | 'permission_id'>
+      project_join_requests: Table<ProjectJoinRequestRow, 'project_id' | 'user_id'>
       projects: Table<ProjectRow, 'workspace_id' | 'name' | 'key'>
       project_statuses: Table<ProjectStatusRow, 'project_id' | 'name'>
       status_transitions: Table<
@@ -258,7 +303,6 @@ export type Database = {
       watchers: Table<WatcherRow, 'issue_id' | 'user_id'>
       notifications: Table<NotificationRow, 'user_id' | 'type' | 'title'>
       saved_filters: Table<SavedFilterRow, 'workspace_id' | 'owner_id' | 'name'>
-      workspace_invites: Table<WorkspaceInviteRow, 'workspace_id' | 'email'>
     }
     /*
      * MIRA has no database views. This must be an empty *object* type rather
@@ -300,14 +344,6 @@ export type Database = {
         Args: { p_workspace?: string | null }
         Returns: number
       }
-      accept_invite: {
-        Args: { p_token: string }
-        Returns: string
-      }
-      seed_demo_for_email: {
-        Args: { p_email: string }
-        Returns: string
-      }
     }
     Enums: {
       workspace_role: WorkspaceRole
@@ -316,7 +352,8 @@ export type Database = {
       status_category: StatusCategory
       sprint_status: SprintStatus
       notification_type: NotificationType
-      invite_status: InviteStatus
+      team_member_role: TeamMemberRole
+      join_request_status: JoinRequestStatus
     }
     CompositeTypes: { [_ in never]: never }
   }

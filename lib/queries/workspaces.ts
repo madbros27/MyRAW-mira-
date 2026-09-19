@@ -3,9 +3,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { qk } from './keys'
-import { INVITE_SELECT, MEMBER_SELECT, unwrap, useSupabase } from './shared'
+import { MEMBER_SELECT, unwrap, useSupabase } from './shared'
 import type {
-  Invite,
   Member,
   Profile,
   Workspace,
@@ -178,70 +177,3 @@ export function useRemoveMember(workspaceId: string) {
   })
 }
 
-/* -------------------------------------------------------------------------- */
-/* Invites                                                                    */
-/* -------------------------------------------------------------------------- */
-
-export function useInvites(workspaceId?: string) {
-  const supabase = useSupabase()
-  return useQuery({
-    queryKey: qk.invites(workspaceId ?? 'none'),
-    enabled: Boolean(workspaceId),
-    queryFn: async () => {
-      const result = await supabase
-        .from('workspace_invites')
-        .select(INVITE_SELECT)
-        .eq('workspace_id', workspaceId!)
-        .order('created_at', { ascending: false })
-      return unwrap(result) as unknown as Invite[]
-    },
-  })
-}
-
-/**
- * Invites go through a route handler: the email is sent with the service-role
- * key, which must never reach the browser.
- */
-export function useInviteMember(workspaceId: string) {
-  const client = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (input: { email: string; role: WorkspaceRole }) => {
-      const response = await fetch('/api/invites', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ workspaceId, ...input }),
-      })
-      const payload = (await response.json()) as {
-        ok?: boolean
-        error?: string
-        inviteUrl?: string
-        emailed?: boolean
-      }
-      if (!response.ok || payload.error) {
-        throw new Error(payload.error ?? 'Could not send the invitation')
-      }
-      return payload
-    },
-    onSuccess: () => {
-      client.invalidateQueries({ queryKey: qk.invites(workspaceId) })
-      client.invalidateQueries({ queryKey: qk.members(workspaceId) })
-    },
-  })
-}
-
-export function useRevokeInvite(workspaceId: string) {
-  const supabase = useSupabase()
-  const client = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (inviteId: string) => {
-      const { error } = await supabase
-        .from('workspace_invites')
-        .update({ status: 'revoked' })
-        .eq('id', inviteId)
-      if (error) throw error
-    },
-    onSuccess: () => client.invalidateQueries({ queryKey: qk.invites(workspaceId) }),
-  })
-}

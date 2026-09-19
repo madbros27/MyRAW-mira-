@@ -179,7 +179,6 @@ export const NOTIFICATION_META: Record<
   issue_created: { icon: 'Plus', className: 'bg-muted text-muted-foreground' },
   sprint_started: { icon: 'Play', className: 'bg-success-subtle text-success' },
   sprint_completed: { icon: 'Flag', className: 'bg-success-subtle text-success' },
-  invited: { icon: 'Mail', className: 'bg-primary-subtle text-primary-subtle-foreground' },
 }
 
 /* -------------------------------------------------------------------------- */

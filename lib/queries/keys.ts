@@ -9,7 +9,11 @@ export const qk = {
   workspaces: ['workspaces'] as const,
   workspace: (id: string) => ['workspace', id] as const,
   members: (workspaceId: string) => ['members', workspaceId] as const,
-  invites: (workspaceId: string) => ['invites', workspaceId] as const,
+  teams: (workspaceId: string) => ['teams', workspaceId] as const,
+  team: (id: string) => ['team', id] as const,
+  roles: (workspaceId: string) => ['roles', workspaceId] as const,
+  permissions: ['permissions'] as const,
+  projectRequests: (workspaceId: string) => ['project-requests', workspaceId] as const,
 
   projects: (workspaceId: string) => ['projects', workspaceId] as const,
   project: (id: string) => ['project', id] as const,

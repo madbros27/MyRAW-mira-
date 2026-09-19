@@ -84,10 +84,10 @@ export function UserMenu({ variant = 'sidebar' }: { variant?: 'sidebar' | 'plain
             Workspace settings
           </DropdownMenuItem>
         ) : null}
-        {can.inviteMembers(role) ? (
+        {can.manageMembers(role) ? (
           <DropdownMenuItem onSelect={() => router.push('/settings/members')}>
             <Users />
-            Members &amp; invites
+            Members
           </DropdownMenuItem>
         ) : null}
         <DropdownMenuItem onSelect={() => setShortcutsOpen(true)}>
