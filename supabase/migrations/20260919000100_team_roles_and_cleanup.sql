@@ -281,22 +281,6 @@ as $$
   where t.id = p_team;
 $$;
 
-create or replace function public.project_team_membership_allowed(p_project uuid, p_user uuid)
-returns boolean
-language sql
-stable
-security definer
-set search_path = public, pg_temp
-as $$
-  select exists (
-    select 1
-    from public.projects p
-    left join public.team_members tm on tm.team_id = p.team_id
-    where p.id = p_project
-      and tm.user_id = p_user
-  );
-$$;
-
 create or replace function public.is_team_member(p_team_id uuid, p_user_id uuid default auth.uid())
 returns boolean
 language sql
@@ -505,6 +489,22 @@ drop trigger if exists projects_team_workspace_validate on public.projects;
 create trigger projects_team_workspace_validate
 before insert or update of workspace_id, team_id on public.projects
 for each row execute function public.validate_project_team_workspace();
+
+create or replace function public.project_team_membership_allowed(p_project uuid, p_user uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $$
+  select exists (
+    select 1
+    from public.projects p
+    left join public.team_members tm on tm.team_id = p.team_id
+    where p.id = p_project
+      and tm.user_id = p_user
+  );
+$$;
 
 -- ---------------------------------------------------------------------------
 -- 8. Validation and lifecycle triggers
