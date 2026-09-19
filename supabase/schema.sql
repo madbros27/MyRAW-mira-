@@ -2538,116 +2538,8 @@ as $$
   );
 $$;
 
-create or replace function public.has_permission(p_workspace_id uuid, p_permission text, p_user_id uuid default auth.uid())
-returns boolean
-language sql
-stable
-security definer
-set search_path = public, pg_temp
-as $$
-  select
-    exists (
-      select 1
-      from public.workspaces w
-      where w.id = p_workspace_id
-        and w.owner_id = p_user_id
-    )
-    or exists (
-      select 1
-      from public.workspace_members wm
-      where wm.workspace_id = p_workspace_id
-        and wm.user_id = p_user_id
-        and wm.role = 'admin'
-    )
-    or exists (
-      select 1
-      from public.workspace_member_roles wmr
-      join public.role_permissions rp on rp.role_id = wmr.role_id
-      join public.permissions p on p.id = rp.permission_id
-      where wmr.workspace_id = p_workspace_id
-        and wmr.user_id = p_user_id
-        and p.key = p_permission
-    );
-$$;
-
 -- ---------------------------------------------------------------------------
--- 3. Team and project authorization helpers
--- ---------------------------------------------------------------------------
-
-create or replace function public.workspace_of_team(p_team uuid)
-returns uuid
-language sql
-stable
-security definer
-set search_path = public, pg_temp
-as $$
-  select t.workspace_id
-  from public.teams t
-  where t.id = p_team;
-$$;
-
-create or replace function public.project_team_membership_allowed(p_project uuid, p_user uuid)
-returns boolean
-language sql
-stable
-security definer
-set search_path = public, pg_temp
-as $$
-  select exists (
-    select 1
-    from public.projects p
-    left join public.team_members tm on tm.team_id = p.team_id
-    where p.id = p_project
-      and tm.user_id = p_user
-  );
-$$;
-
-create or replace function public.is_team_member(p_team_id uuid, p_user_id uuid default auth.uid())
-returns boolean
-language sql
-stable
-security definer
-set search_path = public, pg_temp
-as $$
-  select exists (
-    select 1
-    from public.team_members tm
-    where tm.team_id = p_team_id
-      and tm.user_id = p_user_id
-  );
-$$;
-
-create or replace function public.is_team_lead(p_team_id uuid, p_user_id uuid default auth.uid())
-returns boolean
-language sql
-stable
-security definer
-set search_path = public, pg_temp
-as $$
-  select exists (
-    select 1
-    from public.team_members tm
-    where tm.team_id = p_team_id
-      and tm.user_id = p_user_id
-      and tm.role = 'lead'
-  );
-$$;
-
-create or replace function public.can_manage_team(p_team_id uuid, p_user_id uuid default auth.uid())
-returns boolean
-language sql
-stable
-security definer
-set search_path = public, pg_temp
-as $$
-  select
-    public.is_workspace_admin_or_owner(public.workspace_of_team(p_team_id), p_user_id)
-    or public.has_permission(public.workspace_of_team(p_team_id), 'manage_team', p_user_id)
-    or public.has_permission(public.workspace_of_team(p_team_id), 'manage_team_members', p_user_id);
-$$;
-
--- ---------------------------------------------------------------------------
--- 4. Teams and team membership
+-- 3. Teams and team membership
 -- ---------------------------------------------------------------------------
 
 do $$ begin
@@ -2771,6 +2663,110 @@ create table if not exists public.workspace_member_roles (
   created_at  timestamptz not null default now(),
   unique (workspace_id, user_id, role_id)
 );
+
+create or replace function public.workspace_of_team(p_team uuid)
+returns uuid
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $$
+  select t.workspace_id
+  from public.teams t
+  where t.id = p_team;
+$$;
+
+create or replace function public.project_team_membership_allowed(p_project uuid, p_user uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $$
+  select exists (
+    select 1
+    from public.projects p
+    left join public.team_members tm on tm.team_id = p.team_id
+    where p.id = p_project
+      and tm.user_id = p_user
+  );
+$$;
+
+create or replace function public.is_team_member(p_team_id uuid, p_user_id uuid default auth.uid())
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $$
+  select exists (
+    select 1
+    from public.team_members tm
+    where tm.team_id = p_team_id
+      and tm.user_id = p_user_id
+  );
+$$;
+
+create or replace function public.is_team_lead(p_team_id uuid, p_user_id uuid default auth.uid())
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $$
+  select exists (
+    select 1
+    from public.team_members tm
+    where tm.team_id = p_team_id
+      and tm.user_id = p_user_id
+      and tm.role = 'lead'
+  );
+$$;
+
+create or replace function public.has_permission(p_workspace_id uuid, p_permission text, p_user_id uuid default auth.uid())
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $$
+  select
+    exists (
+      select 1
+      from public.workspaces w
+      where w.id = p_workspace_id
+        and w.owner_id = p_user_id
+    )
+    or exists (
+      select 1
+      from public.workspace_members wm
+      where wm.workspace_id = p_workspace_id
+        and wm.user_id = p_user_id
+        and wm.role = 'admin'
+    )
+    or exists (
+      select 1
+      from public.workspace_member_roles wmr
+      join public.role_permissions rp on rp.role_id = wmr.role_id
+      join public.permissions p on p.id = rp.permission_id
+      where wmr.workspace_id = p_workspace_id
+        and wmr.user_id = p_user_id
+        and p.key = p_permission
+    );
+$$;
+
+create or replace function public.can_manage_team(p_team_id uuid, p_user_id uuid default auth.uid())
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $$
+  select
+    public.is_workspace_admin_or_owner(public.workspace_of_team(p_team_id), p_user_id)
+    or public.has_permission(public.workspace_of_team(p_team_id), 'manage_team', p_user_id)
+    or public.has_permission(public.workspace_of_team(p_team_id), 'manage_team_members', p_user_id);
+$$;
 
 create index if not exists roles_workspace_idx on public.roles (workspace_id);
 create index if not exists role_permissions_permission_idx on public.role_permissions (permission_id);
