@@ -106,8 +106,8 @@ export default function SetupPage() {
                 </p>
                 <Code>{`npm run dev`}</Code>
                 <p>
-                  Then create an account. New users start with a clean workspace and can join
-                  projects once they are connected to the right team or workspace.
+                  Then create an account. New users create only a profile, discover active
+                  projects, and request access to join once an authorized reviewer approves it.
                 </p>
               </>
             }

@@ -186,7 +186,8 @@ function SignupForm() {
         </Button>
 
         <p className="text-2xs leading-relaxed text-muted-foreground">
-          Your account is created immediately and you can start from a clean workspace.
+          Your account is created immediately. Sign in, browse projects, and request access to
+          the ones you want to join.
         </p>
       </form>
 
