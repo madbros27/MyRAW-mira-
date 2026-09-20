@@ -46,7 +46,7 @@ export default async function InvitationPage({
           MIRA invitation
         </p>
         <h1 className="mt-3 text-xl font-semibold">
-          {isPending ? 'You are invited to join a project' : 'Invitation is no longer active'}
+          {isPending ? 'You\'ve been invited to join this project' : 'Invitation is no longer active'}
         </h1>
         <dl className="mt-6 space-y-3 text-sm">
           <div className="flex justify-between gap-4 border-b border-border pb-3">
@@ -77,13 +77,13 @@ export default async function InvitationPage({
               href={`/login?next=${encodeURIComponent(next)}`}
               className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground"
             >
-              Sign in
+              Sign in & join
             </Link>
             <Link
               href={`/signup?next=${encodeURIComponent(next)}`}
               className="inline-flex h-10 items-center justify-center rounded-lg border border-border px-4 text-sm font-medium"
             >
-              Create account
+              Create account & join
             </Link>
           </div>
         ) : null}

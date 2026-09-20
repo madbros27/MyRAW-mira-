@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Field, Input } from '@/components/ui/input'
 import { useTeams } from '@/lib/queries/teams'
 import { getSupabaseBrowserClient } from '@/lib/supabase/client'
+import { getSiteUrl } from '@/lib/supabase/env'
 import { errorMessage } from '@/lib/utils'
 
 export default function ProjectInvitationsPage() {
@@ -54,7 +55,7 @@ export default function ProjectInvitationsPage() {
       })
       if (error) throw error
       const invitation = Array.isArray(data) ? data[0] : data
-      const invitationLink = `${window.location.origin}/invite/${invitation.token}`
+      const invitationLink = new URL(`/invite/${invitation.token}`, getSiteUrl()).toString()
       setLink(invitationLink)
       toast.success('Invitation generated.')
     } catch (caught) {
@@ -105,19 +106,37 @@ export default function ProjectInvitationsPage() {
               <div className="space-y-2 rounded-lg border border-border bg-surface-raised p-3">
                 <Input readOnly value={link} aria-label="Invitation link" />
                 <div className="flex flex-wrap gap-2">
-                  <Button type="button" variant="secondary" size="sm" onClick={() => navigator.clipboard.writeText(link)}>
-                    Copy link
-                  </Button>
                   <Button
                     type="button"
                     variant="secondary"
                     size="sm"
-                    asChild
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(link)
+                        toast.success('Invitation link copied to clipboard.')
+                      } catch {
+                        toast.error('Unable to copy the invitation link.')
+                      }
+                    }}
                   >
+                    Copy invitation link
+                  </Button>
+                  <Button type="button" variant="secondary" size="sm" asChild>
                     <a
-                      href={`mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(`Invitation to join ${currentProject.name}`)}&body=${encodeURIComponent(`Join the project here: ${link}`)}`}
+                      href={[
+                        `mailto:${email}`,
+                        `subject=${encodeURIComponent(`You're invited to join ${currentProject.name} on MIRA`)}`,
+                        `body=${encodeURIComponent(
+                          `Hi,\n\nYou've been invited to join ${currentProject.name} on MIRA.\n\nAccept your invitation:\n${link}\n\nThis invitation expires on ${new Date(
+                            Date.now() + 7 * 24 * 60 * 60 * 1000
+                          ).toLocaleString(undefined, {
+                            dateStyle: 'medium',
+                            timeStyle: 'short',
+                          })}.\n\nRegards,\nMIRA`
+                        )}`,
+                      ].join('&')}
                     >
-                      Email invitation
+                      Send via Email
                     </a>
                   </Button>
                 </div>
