@@ -96,8 +96,14 @@ function MadbrosLoginForm() {
         .eq('is_system_admin', true)
         .maybeSingle()
 
-      const isSystemAdmin = Boolean(systemAdminProfile)
-      router.push(isSystemAdmin ? '/madbros' : '/')
+      if (!systemAdminProfile) {
+        await supabase.auth.signOut()
+        setError('This account is not authorized for the Madbros system login. Please use the regular MIRA sign-in.')
+        setPending(false)
+        return
+      }
+
+      router.push('/madbros')
       router.refresh()
     } catch (caught) {
       const message = errorMessage(caught, 'Could not sign you in')

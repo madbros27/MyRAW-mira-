@@ -105,7 +105,14 @@ function LoginForm() {
         .eq('is_system_admin', true)
         .maybeSingle()
 
-      const destination = systemAdminProfile ? '/madbros' : next.startsWith('/madbros') ? '/' : next
+      if (systemAdminProfile) {
+        await supabase.auth.signOut()
+        setError('System administrator: please use /madbros/login.')
+        setPending(false)
+        return
+      }
+
+      const destination = next.startsWith('/madbros') ? '/' : next
       router.push(destination)
       router.refresh()
     } catch (caught) {

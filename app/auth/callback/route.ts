@@ -33,6 +33,34 @@ export async function GET(request: NextRequest) {
         `${origin}/login?notice=auth-error&message=${encodeURIComponent(error.message)}`
       )
     }
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (user) {
+      const { data: adminProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .eq('is_system_admin', true)
+        .maybeSingle()
+
+      if (next === '/madbros' && !adminProfile) {
+        await supabase.auth.signOut()
+        return NextResponse.redirect(
+          `${origin}/madbros/login?notice=system-admin-required&message=${encodeURIComponent('This account is not authorized for the Madbros system login.')}`
+        )
+      }
+
+      if (next !== '/madbros' && adminProfile) {
+        await supabase.auth.signOut()
+        return NextResponse.redirect(
+          `${origin}/login?notice=system-admin-required&message=${encodeURIComponent('System administrator: please use /madbros/login.')}`
+        )
+      }
+    }
+
     return NextResponse.redirect(`${origin}${safeNext(next)}`)
   }
 
@@ -46,6 +74,34 @@ export async function GET(request: NextRequest) {
         `${origin}/login?notice=auth-error&message=${encodeURIComponent(error.message)}`
       )
     }
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (user) {
+      const { data: adminProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .eq('is_system_admin', true)
+        .maybeSingle()
+
+      if (next === '/madbros' && !adminProfile) {
+        await supabase.auth.signOut()
+        return NextResponse.redirect(
+          `${origin}/madbros/login?notice=system-admin-required&message=${encodeURIComponent('This account is not authorized for the Madbros system login.')}`
+        )
+      }
+
+      if (next !== '/madbros' && adminProfile) {
+        await supabase.auth.signOut()
+        return NextResponse.redirect(
+          `${origin}/login?notice=system-admin-required&message=${encodeURIComponent('System administrator: please use /madbros/login.')}`
+        )
+      }
+    }
+
     return NextResponse.redirect(
       `${origin}${type === 'recovery' ? '/reset-password' : safeNext(next)}`
     )
