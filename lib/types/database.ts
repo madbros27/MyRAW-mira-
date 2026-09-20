@@ -30,6 +30,7 @@ export type NotificationType =
   | 'sprint_completed'
 export type TeamMemberRole = 'lead' | 'member'
 export type JoinRequestStatus = 'pending' | 'approved' | 'rejected' | 'cancelled'
+export type ProjectInvitationStatus = 'pending' | 'accepted' | 'cancelled' | 'expired'
 
 type Timestamps = {
   created_at: string
@@ -43,6 +44,7 @@ export type ProfileRow = Timestamps & {
   avatar_url: string | null
   job_title: string | null
   timezone: string | null
+  is_system_admin: boolean
 }
 
 export type WorkspaceRow = Timestamps & {
@@ -65,6 +67,7 @@ export type ProjectRow = Timestamps & {
   id: string
   workspace_id: string
   team_id: string | null
+  owner_id: string
   name: string
   key: string
   description: string | null
@@ -78,10 +81,24 @@ export type ProjectRow = Timestamps & {
 export type TeamRow = Timestamps & {
   id: string
   workspace_id: string
+  project_id: string | null
   name: string
   description: string | null
   created_by: string
   lead_user_id: string | null
+}
+
+export type ProjectInvitationRow = {
+  id: string
+  project_id: string
+  team_id: string | null
+  invited_email: string
+  invited_by: string
+  token: string
+  status: ProjectInvitationStatus
+  expires_at: string
+  accepted_at: string | null
+  created_at: string
 }
 
 export type TeamMemberRow = Timestamps & {
@@ -161,6 +178,7 @@ export type SprintRow = Timestamps & {
 export type IssueRow = Timestamps & {
   id: string
   project_id: string
+  team_id: string | null
   issue_number: number
   type: IssueType
   title: string
@@ -284,7 +302,8 @@ export type Database = {
       roles: Table<RoleRow, 'workspace_id' | 'name'>
       role_permissions: Table<RolePermissionRow, 'role_id' | 'permission_id'>
       project_join_requests: Table<ProjectJoinRequestRow, 'project_id' | 'user_id'>
-      projects: Table<ProjectRow, 'workspace_id' | 'name' | 'key'>
+      project_invitations: Table<ProjectInvitationRow, 'project_id' | 'invited_email' | 'invited_by' | 'token'>
+      projects: Table<ProjectRow, 'workspace_id' | 'name' | 'key' | 'owner_id'>
       project_statuses: Table<ProjectStatusRow, 'project_id' | 'name'>
       status_transitions: Table<
         StatusTransitionRow,
@@ -322,11 +341,45 @@ export type Database = {
           p_name: string
           p_key: string
           p_description?: string | null
+          p_owner?: string | null
           p_lead?: string | null
+          p_team_id?: string | null
           p_icon?: string
           p_color?: string
         }
         Returns: ProjectRow
+      }
+      create_workspace_and_project: {
+        Args: {
+          p_workspace_name: string
+          p_project_name: string
+          p_project_key: string
+          p_project_owner: string
+        }
+        Returns: ProjectRow
+      }
+      create_project_invitation: {
+        Args: {
+          p_project_id: string
+          p_invited_email: string
+          p_team_id?: string | null
+          p_expires_at?: string
+        }
+        Returns: ProjectInvitationRow
+      }
+      get_project_invitation_preview: {
+        Args: { p_token: string }
+        Returns: {
+          project_name: string
+          team_name: string | null
+          inviter_name: string | null
+          status: string
+          expires_at: string
+        }[]
+      }
+      accept_project_invitation: {
+        Args: { p_token: string }
+        Returns: string
       }
       start_sprint: {
         Args: { p_sprint: string; p_start?: string; p_end?: string | null }
@@ -354,6 +407,7 @@ export type Database = {
       notification_type: NotificationType
       team_member_role: TeamMemberRole
       join_request_status: JoinRequestStatus
+      project_invitation_status: ProjectInvitationStatus
     }
     CompositeTypes: { [_ in never]: never }
   }

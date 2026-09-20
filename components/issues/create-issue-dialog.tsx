@@ -40,6 +40,7 @@ import { useCreateIssue } from '@/lib/queries/issues'
 import { useProjectIssues } from '@/lib/queries/issues'
 import { useCreateLabel, useLabels, useProjects, useStatuses } from '@/lib/queries/projects'
 import { useSprints } from '@/lib/queries/sprints'
+import { useTeamMembers, useTeams } from '@/lib/queries/teams'
 import { useMembers } from '@/lib/queries/workspaces'
 import { useUiStore } from '@/lib/store/ui-store'
 import type { IssueType } from '@/lib/types/database'
@@ -62,6 +63,7 @@ export function CreateIssueDialog() {
   const { data: sprints } = useSprints(activeProjectId)
   const { data: issues } = useProjectIssues(activeProjectId)
   const { data: members } = useMembers(workspaceId)
+  const { data: teams } = useTeams(workspaceId)
   const createLabel = useCreateLabel(activeProjectId ?? '')
   const create = useCreateIssue()
 
@@ -77,6 +79,7 @@ export function CreateIssueDialog() {
     statusId: '',
     priority: 'medium' as const,
     assigneeId: null as string | null,
+    teamId: null as string | null,
     labelIds: [] as string[],
     sprintId: (seed.sprintId ?? null) as string | null,
     epicId: (seed.epicId ?? null) as string | null,
@@ -85,6 +88,14 @@ export function CreateIssueDialog() {
   })
   const [createAnother, setCreateAnother] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  const { data: selectedTeamMembers } = useTeamMembers(form.teamId ?? undefined)
+  const selectedTeamUserIds = React.useMemo(
+    () => new Set((selectedTeamMembers ?? []).map((member) => member.user_id)),
+    [selectedTeamMembers]
+  )
+  const assigneeMembers = form.teamId
+    ? (members ?? []).filter((member) => selectedTeamUserIds.has(member.user_id))
+    : members ?? []
 
   // Re-seed whenever the dialog opens from a new context (a board column, an
   // epic, a sprint row).
@@ -100,6 +111,7 @@ export function CreateIssueDialog() {
       sprintId: seed.sprintId ?? null,
       epicId: seed.epicId ?? null,
       assigneeId: null,
+      teamId: null,
       labelIds: [],
       storyPoints: null,
       dueDate: null,
@@ -132,6 +144,7 @@ export function CreateIssueDialog() {
     try {
       const issue = await create.mutateAsync({
         project_id: activeProjectId,
+        team_id: form.teamId,
         title: form.title.trim(),
         description: form.description.trim() || null,
         type: form.type,
@@ -268,9 +281,36 @@ export function CreateIssueDialog() {
                 <AssigneePicker
                   value={form.assigneeId}
                   onChange={(assigneeId) => setForm((prev) => ({ ...prev, assigneeId }))}
-                  members={members ?? []}
+                  members={assigneeMembers}
                   currentUserId={userId}
                 />
+              </Field>
+
+              <Field label="Team">
+                <Select
+                  value={form.teamId ?? 'none'}
+                  onValueChange={(value) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      teamId: value === 'none' ? null : value,
+                      assigneeId: null,
+                    }))
+                  }
+                >
+                  <SelectTrigger aria-label="Issue team">
+                    <SelectValue placeholder="No team" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No team</SelectItem>
+                    {(teams ?? [])
+                      .filter((team) => team.project_id === activeProjectId)
+                      .map((team) => (
+                        <SelectItem key={team.id} value={team.id}>
+                          {team.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
               </Field>
 
               <Field label="Labels">

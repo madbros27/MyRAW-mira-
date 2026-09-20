@@ -44,15 +44,18 @@ export function useCreateTeam(workspaceId: string) {
       name,
       description,
       createdBy,
+      projectId,
     }: {
       name: string
       description?: string | null
       createdBy: string
+      projectId?: string | null
     }) => {
       const result = await supabase
         .from('teams')
         .insert({
           workspace_id: workspaceId,
+          project_id: projectId ?? null,
           name,
           description: description ?? null,
           created_by: createdBy,
@@ -190,14 +193,17 @@ export function useProjectDiscovery(workspaceId?: string, userId?: string) {
   const supabase = useSupabase()
   return useQuery({
     queryKey: ['project-discovery', workspaceId ?? 'none', userId ?? 'none'],
-    enabled: Boolean(workspaceId && userId),
+    enabled: Boolean(userId),
     queryFn: async () => {
+      const projectsQuery = supabase
+        .from('projects')
+        .select('*, team:teams!projects_team_id_fkey(id,name), lead:profiles!projects_lead_id_fkey(id,full_name,avatar_url,email)')
+        .eq('is_archived', false)
+
+      if (workspaceId) projectsQuery.eq('workspace_id', workspaceId)
+
       const [projectsResult, requestResult, teamMemberResult] = await Promise.all([
-        supabase
-          .from('projects')
-          .select('*, team:teams!projects_team_id_fkey(id,name), lead:profiles!projects_lead_id_fkey(id,full_name,avatar_url,email)')
-          .eq('workspace_id', workspaceId!)
-          .eq('is_archived', false),
+        projectsQuery,
         supabase
           .from('project_join_requests')
           .select('*')

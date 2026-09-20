@@ -27,7 +27,10 @@ export function ProjectPage({
   children: React.ReactNode
 }) {
   const { project, projectKey, isLoading, notFound } = useProjectContext()
-  const { role } = useWorkspaceContext()
+  const { profile, role, userId } = useWorkspaceContext()
+  const canManage = Boolean(
+    can.manageProject(role) || profile?.is_system_admin || project?.owner_id === userId
+  )
 
   if (isLoading) {
     return (
@@ -86,7 +89,7 @@ export function ProjectPage({
         description={description ?? project.description ?? undefined}
         actions={actions}
         tabs={
-          <ProjectNav projectKey={project.key} canManage={can.manageProject(role)} />
+          <ProjectNav projectKey={project.key} canManage={canManage} />
         }
       />
       {children}

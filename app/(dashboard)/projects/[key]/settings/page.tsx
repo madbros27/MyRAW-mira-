@@ -66,9 +66,10 @@ import type { StatusCategory } from '@/lib/types/database'
 import { arrayMove, cn, errorMessage } from '@/lib/utils'
 
 export default function ProjectSettingsPage() {
-  const { role } = useWorkspaceContext()
+  const { profile, role, userId } = useWorkspaceContext()
+  const { project } = useProjectContext()
 
-  if (!can.manageProject(role)) {
+  if (!can.manageProject(role) && !profile?.is_system_admin && project?.owner_id !== userId) {
     return (
       <ProjectPage>
         <div className="p-4 sm:p-8">

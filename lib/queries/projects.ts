@@ -58,25 +58,23 @@ export function useCreateProject(workspaceId: string) {
       name: string
       key: string
       description?: string | null
+      ownerId?: string | null
       leadId?: string | null
       teamId?: string | null
       icon?: string
       color?: string
     }) => {
-      const result = await supabase
-        .from('projects')
-        .insert({
-          workspace_id: workspaceId,
-          name: input.name,
-          key: input.key.toUpperCase(),
-          description: input.description ?? null,
-          lead_id: input.leadId ?? null,
-          team_id: input.teamId ?? null,
-          icon: input.icon ?? 'Rocket',
-          color: input.color ?? '#5B5BD6',
-        })
-        .select(PROJECT_SELECT)
-        .single()
+      const result = await supabase.rpc('create_project', {
+        p_workspace: workspaceId,
+        p_name: input.name,
+        p_key: input.key.toUpperCase(),
+        p_description: input.description ?? null,
+        p_owner: input.ownerId ?? null,
+        p_lead: input.leadId ?? null,
+        p_team_id: input.teamId ?? null,
+        p_icon: input.icon ?? 'Rocket',
+        p_color: input.color ?? '#5B5BD6',
+      })
       return unwrap(result) as unknown as ProjectWithMeta
     },
     onSuccess: () => client.invalidateQueries({ queryKey: qk.projects(workspaceId) }),

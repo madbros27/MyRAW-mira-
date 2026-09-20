@@ -21,7 +21,12 @@ export function ProjectNav({
     { href: `${base}/board`, label: 'Board' },
     { href: `${base}/backlog`, label: 'Backlog' },
     { href: `${base}/reports`, label: 'Reports' },
-    ...(canManage ? [{ href: `${base}/settings`, label: 'Settings' }] : []),
+    ...(canManage
+      ? [
+          { href: `${base}/settings/invitations`, label: 'Invitations' },
+          { href: `${base}/settings`, label: 'Settings' },
+        ]
+      : []),
   ]
 
   return (

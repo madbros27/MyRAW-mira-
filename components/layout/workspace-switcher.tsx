@@ -33,7 +33,8 @@ import { cn, errorMessage, initials } from '@/lib/utils'
 
 export function WorkspaceSwitcher({ variant = 'sidebar' }: { variant?: 'sidebar' | 'plain' }) {
   const router = useRouter()
-  const { workspace, workspaces } = useWorkspaceContext()
+  const { profile, workspace, workspaces } = useWorkspaceContext()
+  const canCreateWorkspace = profile?.is_system_admin === true
   const [creating, setCreating] = React.useState(false)
   const [pending, setPending] = React.useState(false)
 
@@ -83,7 +84,11 @@ export function WorkspaceSwitcher({ variant = 'sidebar' }: { variant?: 'sidebar'
                   dark ? 'text-sidebar-muted' : 'text-muted-foreground'
                 )}
               >
-                {workspace ? ROLE_META[workspace.role].label : 'Create one to start'}
+                {workspace
+                  ? ROLE_META[workspace.role].label
+                  : canCreateWorkspace
+                    ? 'Create one to start'
+                    : 'No workspace access yet'}
               </span>
             </span>
             <ChevronsUpDown
@@ -115,11 +120,15 @@ export function WorkspaceSwitcher({ variant = 'sidebar' }: { variant?: 'sidebar'
             </DropdownMenuItem>
           ))}
 
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={() => setCreating(true)}>
-            <Plus />
-            New workspace
-          </DropdownMenuItem>
+          {canCreateWorkspace ? (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => setCreating(true)}>
+                <Plus />
+                New workspace
+              </DropdownMenuItem>
+            </>
+          ) : null}
           {workspace ? (
             <DropdownMenuItem onSelect={() => router.push('/settings/workspace')}>
               <Settings />

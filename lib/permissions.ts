@@ -24,9 +24,9 @@ export const can = {
   /** Create and edit issues, comment, attach files. */
   writeIssues: (role?: WorkspaceRole) => atLeast(role, 'member'),
   /** Project settings, workflow, labels, sprint lifecycle. */
-  manageProject: (role?: WorkspaceRole) => atLeast(role, 'lead'),
-  /** Create and delete projects. */
-  createProject: (role?: WorkspaceRole) => atLeast(role, 'lead'),
+  manageProject: (role?: WorkspaceRole) => atLeast(role, 'admin'),
+  /** Project creation is reserved for the system-admin RPC. */
+  createProject: (_role?: WorkspaceRole) => false,
   deleteProject: (role?: WorkspaceRole) => atLeast(role, 'lead'),
   /** Delete any issue (members may still delete issues they reported). */
   deleteAnyIssue: (role?: WorkspaceRole) => atLeast(role, 'lead'),

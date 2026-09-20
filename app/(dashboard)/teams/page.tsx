@@ -14,11 +14,12 @@ import { useMembers } from '@/lib/queries/workspaces'
 import { errorMessage } from '@/lib/utils'
 
 export default function TeamsPage() {
-  const { workspaceId, userId, role } = useWorkspaceContext()
+  const { workspaceId, userId, role, profile } = useWorkspaceContext()
   const { data: teams, isLoading } = useTeams(workspaceId)
   const { data: projects } = useProjects(workspaceId)
   const { data: members } = useMembers(workspaceId)
   const createTeam = useCreateTeam(workspaceId)
+  const canCreateTeam = role === 'admin' || profile?.is_system_admin === true || projects?.some((project) => project.owner_id === userId)
   const [name, setName] = React.useState('')
   const [description, setDescription] = React.useState('')
 
@@ -35,7 +36,12 @@ export default function TeamsPage() {
     event.preventDefault()
     if (!name.trim()) return
     try {
-      await createTeam.mutateAsync({ name: name.trim(), description, createdBy: userId })
+      await createTeam.mutateAsync({
+        name: name.trim(),
+        description,
+        createdBy: userId,
+        projectId: projects?.[0]?.id ?? null,
+      })
       setName('')
       setDescription('')
     } catch (error) {
@@ -52,7 +58,7 @@ export default function TeamsPage() {
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Teams</p>
             <h1 className="mt-1 text-xl font-semibold">Team overview</h1>
           </div>
-          {role === 'admin' || role === 'lead' ? (
+          {canCreateTeam ? (
             <Button asChild variant="primary" size="sm">
               <Link href="/teams/new">Create team</Link>
             </Button>
@@ -63,7 +69,7 @@ export default function TeamsPage() {
       <div className="grid gap-3 lg:grid-cols-[420px_minmax(0,1fr)]">
         <Card className="p-4">
           <h2 className="text-sm font-semibold">Create team</h2>
-          <form onSubmit={handleCreate} className="mt-4 space-y-3">
+          {canCreateTeam ? <form onSubmit={handleCreate} className="mt-4 space-y-3">
             <div className="space-y-1">
               <label className="text-xs font-medium text-muted-foreground">Name</label>
               <input
@@ -86,7 +92,7 @@ export default function TeamsPage() {
               <Plus />
               Create team
             </Button>
-          </form>
+          </form> : null}
         </Card>
 
         <div className="space-y-3">

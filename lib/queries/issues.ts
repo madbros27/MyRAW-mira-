@@ -161,6 +161,7 @@ type IssuePatch = Partial<
     | 'type'
     | 'status_id'
     | 'priority'
+    | 'team_id'
     | 'assignee_id'
     | 'epic_id'
     | 'parent_id'
@@ -199,6 +200,7 @@ function patchIssueInList(
 
 export type CreateIssueInput = {
   project_id: string
+  team_id?: string | null
   title: string
   type?: IssueType
   description?: string | null

@@ -16,6 +16,7 @@ import type { Database } from '@/lib/types/database'
 const PUBLIC_PATHS = [
   '/login',
   '/signup',
+  '/madbros/login',
   '/forgot-password',
   '/reset-password',
   '/auth/callback',
@@ -67,12 +68,59 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
+  const isLegacyAdminPath = pathname === '/admin' || pathname.startsWith('/admin/')
+  const isMadbrosPath = pathname === '/madbros' || pathname.startsWith('/madbros/')
+
+  if (!user && isLegacyAdminPath) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/madbros/login'
+    url.search = ''
+    return copyCookies(response, NextResponse.redirect(url))
+  }
+
+  if (!user && isMadbrosPath && pathname !== '/madbros/login') {
+    const url = request.nextUrl.clone()
+    url.pathname = '/madbros/login'
+    url.search = ''
+    return copyCookies(response, NextResponse.redirect(url))
+  }
+
   if (!user && !isPublicPath(pathname)) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     url.search = ''
     if (pathname !== '/') url.searchParams.set('next', pathname + request.nextUrl.search)
     return copyCookies(response, NextResponse.redirect(url))
+  }
+
+  if (user && isLegacyAdminPath) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/madbros'
+    url.search = ''
+    return copyCookies(response, NextResponse.redirect(url))
+  }
+
+  if (user && (isMadbrosPath || pathname === '/madbros/login')) {
+    const { data: adminProfile, error } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', user.id)
+      .eq('is_system_admin', true)
+      .maybeSingle()
+
+    if (pathname === '/madbros/login' && !error && adminProfile) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/madbros'
+      url.search = ''
+      return copyCookies(response, NextResponse.redirect(url))
+    }
+
+    if (isMadbrosPath && pathname !== '/madbros/login' && (!adminProfile || error)) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/'
+      url.search = ''
+      return copyCookies(response, NextResponse.redirect(url))
+    }
   }
 
   if (user && (pathname === '/login' || pathname === '/signup')) {
