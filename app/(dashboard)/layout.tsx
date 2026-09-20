@@ -78,7 +78,16 @@ export default async function DashboardLayout({
     .sort((a, b) => a.name.localeCompare(b.name))
 
   if (!workspaces.length) {
-    return <NoWorkspace email={user.email ?? ''} />
+    return (
+      <NoWorkspace
+        email={user.email ?? ''}
+        userId={user.id}
+        profile={profile}
+        initialWorkspaces={workspaces}
+      >
+        {children}
+      </NoWorkspace>
+    )
   }
 
   const cookieStore = await cookies()

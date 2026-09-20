@@ -13,7 +13,7 @@ import { displayName, errorMessage } from '@/lib/utils'
 
 export default function ProjectDiscoveryPage() {
   const { workspaceId, userId } = useWorkspaceContext()
-  const { data: projects, isLoading } = useProjectDiscovery(workspaceId, userId)
+  const { data: projects, isLoading } = useProjectDiscovery(workspaceId || undefined, userId)
   const request = useCreateProjectJoinRequest()
   const cancel = useCancelProjectJoinRequest()
   const [term, setTerm] = React.useState('')

@@ -2,18 +2,50 @@
 
 import { LogOut, Search } from 'lucide-react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import * as React from 'react'
 
+import { AppShell } from '@/components/layout/app-shell'
 import { Wordmark } from '@/components/layout/logo'
+import { WorkspaceProvider } from '@/components/providers/workspace-provider'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/primitives'
+import type { Profile, WorkspaceWithRole } from '@/lib/types/app'
 
 /**
  * Shown when the signed-in account has no workspace membership yet. This is a
  * normal onboarding state for MIRA: users discover projects and request access
  * rather than creating a workspace automatically.
  */
-export function NoWorkspace({ email }: { email: string }) {
+export function NoWorkspace({
+  email,
+  userId,
+  profile,
+  initialWorkspaces,
+  children,
+}: {
+  email: string
+  userId: string
+  profile: Profile | null
+  initialWorkspaces: WorkspaceWithRole[]
+  children?: React.ReactNode
+}) {
+  const pathname = usePathname()
+  const showDiscovery = pathname === '/projects/discover' || pathname === '/projects/discover/'
+
+  if (showDiscovery) {
+    return (
+      <WorkspaceProvider
+        userId={userId}
+        initialProfile={profile}
+        initialWorkspaces={initialWorkspaces}
+        activeWorkspaceId=""
+      >
+        <AppShell>{children}</AppShell>
+      </WorkspaceProvider>
+    )
+  }
+
   return (
     <main className="flex min-h-dvh items-center justify-center bg-canvas p-4">
       <Card className="w-full max-w-lg p-6 shadow-md">
