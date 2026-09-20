@@ -103,7 +103,7 @@ function MadbrosLoginForm() {
         return
       }
 
-      router.push('/madbros')
+      router.push('/?from=madbros')
       router.refresh()
     } catch (caught) {
       const message = errorMessage(caught, 'Could not sign you in')
@@ -186,7 +186,7 @@ function MadbrosLoginForm() {
           <Separator className="flex-1" />
         </div>
 
-        <OAuthButtons next="/madbros" />
+        <OAuthButtons next="/?from=madbros" />
       </div>
     </main>
   )

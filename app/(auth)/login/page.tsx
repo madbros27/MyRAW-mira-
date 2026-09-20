@@ -107,7 +107,7 @@ function LoginForm() {
 
       if (systemAdminProfile) {
         await supabase.auth.signOut()
-        setError('System administrator: please use /madbros/login.')
+        setError('Could not sign you in:')
         setPending(false)
         return
       }

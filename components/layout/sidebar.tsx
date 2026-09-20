@@ -9,6 +9,7 @@ import {
   Inbox,
   Plus,
   Search,
+  ShieldCheck,
   Users,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -82,7 +83,7 @@ export function Sidebar() {
 
 function SidebarNav({ collapsed }: { collapsed: boolean }) {
   const pathname = usePathname()
-  const { workspaceId, role } = useWorkspaceContext()
+  const { workspaceId, role, profile } = useWorkspaceContext()
   const { data: projects, isLoading } = useProjects(workspaceId)
   const unread = useUnreadCount(workspaceId)
   const setCommandOpen = useUiStore((state) => state.setCommandOpen)
@@ -95,6 +96,16 @@ function SidebarNav({ collapsed }: { collapsed: boolean }) {
     { href: '/projects', label: 'Projects', icon: FolderKanban },
     { href: '/projects/discover', label: 'Find Projects', icon: Search },
     { href: '/teams', label: 'Teams', icon: Users },
+  ]
+
+  const adminItems = [
+    { href: '/madbros', label: 'Overview' },
+    { href: '/madbros', label: 'Users' },
+    { href: '/madbros', label: 'Workspaces' },
+    { href: '/madbros', label: 'Projects' },
+    { href: '/madbros', label: 'Teams' },
+    { href: '/madbros', label: 'Roles & Permissions' },
+    { href: '/madbros/settings/security', label: 'Settings' },
   ]
 
   return (
@@ -129,6 +140,34 @@ function SidebarNav({ collapsed }: { collapsed: boolean }) {
           )
         })}
       </ul>
+
+      {profile?.is_system_admin ? (
+        <div className="mt-5">
+          {!collapsed ? (
+            <div className="mb-2 flex items-center gap-2 px-2 text-2xs font-semibold uppercase tracking-wide text-sidebar-muted">
+              <ShieldCheck className="size-3.5" />
+              System administration
+            </div>
+          ) : null}
+
+          <ul className="space-y-0.5">
+            {adminItems.map((item) => {
+              const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
+              return (
+                <li key={`${item.href}-${item.label}`}>
+                  <SidebarLink
+                    href={item.href}
+                    label={item.label}
+                    icon={ShieldCheck}
+                    active={active}
+                    collapsed={collapsed}
+                  />
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      ) : null}
 
       <div className="mt-5">
         <div
