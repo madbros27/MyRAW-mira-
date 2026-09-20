@@ -33,6 +33,36 @@ function AuthFormSkeleton() {
 
 function MadbrosLoginForm() {
   const router = useRouter()
+
+  React.useEffect(() => {
+    let ignore = false
+
+    async function redirectIfAuthenticated() {
+      const supabase = getSupabaseBrowserClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user || ignore) return
+
+      const { data: systemAdminProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .eq('is_system_admin', true)
+        .maybeSingle()
+
+      if (!ignore) {
+        router.replace(systemAdminProfile ? '/madbros' : '/')
+      }
+    }
+
+    redirectIfAuthenticated()
+    return () => {
+      ignore = true
+    }
+  }, [router])
+
   const [email, setEmail] = React.useState('')
   const [password, setPassword] = React.useState('')
   const [showPassword, setShowPassword] = React.useState(false)
@@ -64,9 +94,9 @@ function MadbrosLoginForm() {
         .select('id')
         .eq('id', user.id)
         .eq('is_system_admin', true)
-        .limit(1)
+        .maybeSingle()
 
-      const isSystemAdmin = Boolean(systemAdminProfile?.length)
+      const isSystemAdmin = Boolean(systemAdminProfile)
       router.push(isSystemAdmin ? '/madbros' : '/')
       router.refresh()
     } catch (caught) {

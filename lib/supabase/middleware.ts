@@ -108,9 +108,16 @@ export async function updateSession(request: NextRequest) {
       .eq('is_system_admin', true)
       .maybeSingle()
 
-    if (pathname === '/madbros/login' && !error && adminProfile) {
+    if (pathname === '/madbros/login') {
+      if (!error && adminProfile) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/madbros'
+        url.search = ''
+        return copyCookies(response, NextResponse.redirect(url))
+      }
+
       const url = request.nextUrl.clone()
-      url.pathname = '/madbros'
+      url.pathname = '/'
       url.search = ''
       return copyCookies(response, NextResponse.redirect(url))
     }
@@ -124,6 +131,20 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (user && (pathname === '/login' || pathname === '/signup')) {
+    const { data: adminProfile, error } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', user.id)
+      .eq('is_system_admin', true)
+      .maybeSingle()
+
+    if (!error && adminProfile) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/madbros'
+      url.search = ''
+      return copyCookies(response, NextResponse.redirect(url))
+    }
+
     const url = request.nextUrl.clone()
     url.pathname = '/'
     url.search = ''

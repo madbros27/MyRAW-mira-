@@ -42,6 +42,35 @@ function LoginForm() {
   const next = searchParams.get('next') ?? '/'
   const notice = searchParams.get('notice')
 
+  React.useEffect(() => {
+    let ignore = false
+
+    async function redirectIfSystemAdmin() {
+      const supabase = getSupabaseBrowserClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user || ignore) return
+
+      const { data: systemAdminProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .eq('is_system_admin', true)
+        .maybeSingle()
+
+      if (!ignore && systemAdminProfile) {
+        router.replace('/madbros')
+      }
+    }
+
+    redirectIfSystemAdmin()
+    return () => {
+      ignore = true
+    }
+  }, [router])
+
   const [email, setEmail] = React.useState('')
   const [password, setPassword] = React.useState('')
   const [showPassword, setShowPassword] = React.useState(false)
@@ -61,7 +90,23 @@ function LoginForm() {
       })
       if (signInError) throw signInError
 
-      router.push(next)
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) {
+        throw new Error('Authentication required.')
+      }
+
+      const { data: systemAdminProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .eq('is_system_admin', true)
+        .maybeSingle()
+
+      const destination = systemAdminProfile ? '/madbros' : next.startsWith('/madbros') ? '/' : next
+      router.push(destination)
       router.refresh()
     } catch (caught) {
       const message = errorMessage(caught, 'Could not sign you in')
