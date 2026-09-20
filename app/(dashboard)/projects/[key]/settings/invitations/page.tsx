@@ -22,6 +22,8 @@ export default function ProjectInvitationsPage() {
   const [email, setEmail] = React.useState('')
   const [teamId, setTeamId] = React.useState('none')
   const [link, setLink] = React.useState<string | null>(null)
+  const [expiresAt, setExpiresAt] = React.useState<string | null>(null)
+  const [pendingInvitationExists, setPendingInvitationExists] = React.useState(false)
   const [pending, setPending] = React.useState(false)
 
   const canManage = Boolean(
@@ -42,6 +44,20 @@ export default function ProjectInvitationsPage() {
   }
 
   const currentProject = project
+  const inviterName = profile?.full_name?.trim() || profile?.email || 'MIRA team'
+  const mailtoUrl = link
+    ? `mailto:${email.trim()}?${new URLSearchParams({
+        subject: `You're invited to join ${currentProject.name} on MIRA`,
+        body: [
+          `Hi,`,
+          `\n${inviterName} invited you to join ${currentProject.name} on MIRA.`,
+          `\nOpen this link and sign in or sign up using ${email.trim()}:`,
+          link,
+          `\nRegards,`,
+          inviterName,
+        ].join('\n')
+      }).toString()}`
+    : null
 
   async function generate() {
     if (!email.trim()) return
@@ -56,10 +72,18 @@ export default function ProjectInvitationsPage() {
       if (error) throw error
       const invitation = Array.isArray(data) ? data[0] : data
       const invitationLink = new URL(`/invite/${invitation.token}`, getSiteUrl()).toString()
+      const existsPending = invitation.status === 'pending'
       setLink(invitationLink)
-      toast.success('Invitation generated.')
+      setExpiresAt(invitation.expires_at)
+      setPendingInvitationExists(existsPending)
+      toast.success(
+        existsPending
+          ? `A pending invitation already exists for ${email.trim()}.`
+          : 'Invitation generated.'
+      )
     } catch (caught) {
-      toast.error(errorMessage(caught, 'Unable to generate invitation'))
+      const message = errorMessage(caught, 'Unable to generate invitation')
+      toast.error(message)
     } finally {
       setPending(false)
     }
@@ -104,6 +128,16 @@ export default function ProjectInvitationsPage() {
             </Button>
             {link ? (
               <div className="space-y-2 rounded-lg border border-border bg-surface-raised p-3">
+                <p className="text-sm font-medium text-foreground">
+                  {pendingInvitationExists
+                    ? `A pending invitation already exists for ${email.trim()}.`
+                    : 'Invitation created successfully.'}
+                </p>
+                {expiresAt ? (
+                  <p className="text-xs text-muted-foreground">
+                    Expiration: {new Date(expiresAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
+                  </p>
+                ) : null}
                 <Input readOnly value={link} aria-label="Invitation link" />
                 <div className="flex flex-wrap gap-2">
                   <Button
@@ -121,24 +155,11 @@ export default function ProjectInvitationsPage() {
                   >
                     Copy invitation link
                   </Button>
-                  <Button type="button" variant="secondary" size="sm" asChild>
-                    <a
-                      href={[
-                        `mailto:${email}`,
-                        `subject=${encodeURIComponent(`You're invited to join ${currentProject.name} on MIRA`)}`,
-                        `body=${encodeURIComponent(
-                          `Hi,\n\nYou've been invited to join ${currentProject.name} on MIRA.\n\nAccept your invitation:\n${link}\n\nThis invitation expires on ${new Date(
-                            Date.now() + 7 * 24 * 60 * 60 * 1000
-                          ).toLocaleString(undefined, {
-                            dateStyle: 'medium',
-                            timeStyle: 'short',
-                          })}.\n\nRegards,\nMIRA`
-                        )}`,
-                      ].join('&')}
-                    >
-                      Send via Email
-                    </a>
-                  </Button>
+                  {mailtoUrl ? (
+                    <Button type="button" variant="secondary" size="sm" asChild>
+                      <a href={mailtoUrl}>Send via Email</a>
+                    </Button>
+                  ) : null}
                 </div>
               </div>
             ) : null}
