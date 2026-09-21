@@ -1,7 +1,7 @@
 'use client'
 
 import { Eye, EyeOff } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import * as React from 'react'
 
 import { OAuthButtons } from '@/components/auth/oauth-buttons'
@@ -33,6 +33,9 @@ function AuthFormSkeleton() {
 
 function MadbrosLoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const requestedNext = searchParams.get('next')
+  const next = requestedNext === '/madbros' ? requestedNext : '/madbros'
 
   React.useEffect(() => {
     let ignore = false
@@ -103,7 +106,7 @@ function MadbrosLoginForm() {
         return
       }
 
-      router.push('/?from=madbros')
+      router.push(next)
       router.refresh()
     } catch (caught) {
       const message = errorMessage(caught, 'Could not sign you in')
@@ -186,7 +189,7 @@ function MadbrosLoginForm() {
           <Separator className="flex-1" />
         </div>
 
-        <OAuthButtons next="/?from=madbros" />
+        <OAuthButtons next={next} />
       </div>
     </main>
   )

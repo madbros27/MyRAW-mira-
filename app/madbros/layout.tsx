@@ -20,7 +20,7 @@ export default async function MadbrosLayout({
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) redirect('/madbros/login?next=/madbros')
+  if (!user) return children
 
   const [profileResult, membershipResult] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
